@@ -1,0 +1,120 @@
+import numpy as np
+ 
+def do_crossover(s1, s2, m):
+   s1, s2 = s1.copy(), s2.copy()
+   c1 = s2.copy()
+   for i in range(m, len(s1)): c1.remove(s1[i])
+   for i in range(m, len(s1)): c1.append(s1[i])
+   c2 = s1.copy()
+   for i in range(m, len(s2)): c2.remove(s2[i])
+   for i in range(m, len(s2)): c2.append(s2[i]) 
+   return (c1, c2)
+         
+def do_mutation(s, m, n):
+   i, j = min(m, n), max(m, n)
+   s1 = s.copy()
+   while i < j:
+       s1[i], s1[j] = s1[j], s1[i]
+       i += 1
+       j -= 1
+   return s1
+     
+def compute_fitness(G, s):
+   l = 0
+   for i in range(len(s)-1):
+       l += G[s[i]][s[i+1]]
+   l += G[s[len(s)-1]][s[0]]   
+   return l
+     
+def evaluate(G, gen, k):
+   gen = sorted(gen, key=lambda s: compute_fitness(G, s))
+   return gen[:k]
+ 
+def initial():
+    gen = []
+    path = list(range(len(graph)))
+    #initial pop
+    while len(gen) < pop:
+        path1 = path.copy()
+        np.random.shuffle(path1)
+        if not path1 in gen:
+            gen.append(path1)    
+    return gen
+
+def combine( gen ):
+    next_gen = []
+    L = len(gen[0])
+    for i in range( round(pop/2) ):
+          k1 = np.random.randint(0, L )
+          k2 = np.random.randint(0, L )
+          c1, c2 = do_crossover( gen[k1], gen[k2], np.random.randint(0, L) )
+          
+          if np.random.rand() < mutation_prob:
+              m = np.random.randint(0, L )
+              n = np.random.randint(0, L )
+              c1 = do_mutation( c1 , m, n)
+          if np.random.rand() < mutation_prob:
+              m = np.random.randint(0, L )
+              n = np.random.randint(0, L )
+              c2 = do_mutation( c2 , m, n )
+             
+          next_gen.append(c1)
+          next_gen.append(c2)
+          
+    return next_gen
+
+def replace( gn ):
+    return gn[ : pop]
+
+def best():
+    return gen[pop-1] , compute_fitness(graph, gen[pop-1] )
+#=====================================================
+graph2 = [[0, 4, 3, 2],
+         [4, 0, 1, 2],
+         [3, 1, 0, 5],
+         [1, 2, 5, 0] ]
+
+graph3 = [[ 0, 5, 1, 3, 2],
+         [ 5, 0, 2, 3, 1],
+         [ 1, 2, 0, 2, 3],
+         [ 3, 3, 2, 0, 4],
+         [ 2, 1, 3, 4, 0] ]
+
+graph = [
+[0,29,82,46,68,52,72,42,51,55,29,74,23,72,46],
+[29,0,55,46,42,43,43,23,23,31,41,51,11,52,21],
+[82,55,0,68,46,55,23,43,41,29,79,21,64,31,51],
+[46,46,68,0,82,15,72,31,62,42,21,51,51,43,64],
+[68,42,46,8,0,74,23,52,21,46,82,58,46,65,23],
+[52,43,55,15,74,0,61,23,55,31,33,37,51,29,59],
+[72,43,23,72,23,61,0,42,23,31,77,37,51,46,33],
+[42,23,43,31,52,23,42,0,33,15,37,33,33,31,37],
+[51,23,41,62,21,55,23,33,0,29,62,46,29,51,11],
+[55,31,29,42,46,31,31,15,29,0,51,21,41,23,37],
+[29,41,79,21,82,33,77,37,62,51,0,65,42,59,61],
+[74,51,21,51,58,37,37,33,46,21,65,0,61,11,55],
+[23,11,64,51,46,51,51,33,29,41,42,61,0,62,23],
+[72,52,31,43,65,29,46,31,51,23,59,11,62,0,59],
+[46,21,51,64,23,59,33,37,11,37,61,55,23,59,0] ]
+
+
+mutation_prob = 0.1  
+ntrial = 500 
+pop = 20 
+c = 1000  
+   
+gen = initial()
+    
+for i in range(ntrial):
+       gen    = evaluate(graph, gen, pop )
+       newgen = combine(gen)
+       gen    = replace(newgen)
+       
+       sp , cp = best()
+       if cp < c:
+           #print(i,c)
+           c = cp
+           s = sp
+       
+print(  s, c )
+
