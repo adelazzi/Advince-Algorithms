@@ -204,10 +204,6 @@ Contributions are welcome! Please feel free to:
 - [ ] Include performance benchmarking suite
 - [ ] Add algorithm animation features
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 👨‍💻 Author
 
 **M1 HPC Student** - Computational Algorithms Implementation
