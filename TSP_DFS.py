@@ -15,46 +15,66 @@ graph = [
     [72, 52, 31, 43, 65, 29, 46, 31, 51, 23, 59, 11, 62, 0, 59],
     [46, 21, 51, 64, 23, 59, 33, 37, 11, 37, 61, 55, 23, 59, 0]
 ]
-
-marque = [False] * len(graph)
-longueur = 0
-longueurMin = 1000
-n = 1  
-cycle = []
-borne = 400
-
-def dfs( start):
-    global n
-    global longueur
-    global longueurMin
-    global source
-    global borne
-
-    if start == source and n == len(graph) + 1:
-        print('  Tour =', cycle, longueur)
-        if longueur <= longueurMin:
-            longueurMin = longueur
-            borne=longueur
-        return
-    elif marque[start]:
-        return
-    else:
-        if longueur >= borne:        
+class TSPSolver:
+    def __init__(self, graph):
+        self.graph = graph
+        self.visited = [False] * len(graph)
+        self.path_length = 0
+        self.min_path_length = float('inf')
+        self.current_step = 1
+        self.path = []
+        self.upper_bound = 400
+        self.source = 0
+    
+    def solve(self):
+        """Start the TSP solving process from the source node."""
+        self.dfs(self.source)
+        return self.min_path_length
+    
+    def dfs(self, current_node):
+        """Depth-first search implementation for TSP."""
+        # Check if we've completed a tour
+        if current_node == self.source and self.current_step == len(self.graph) + 1:
+            print(f"  Tour = {self.path}, length = {self.path_length}")
+            if self.path_length < self.min_path_length:
+                self.min_path_length = self.path_length
+                self.upper_bound = self.path_length
             return
-       
-        marque[start] = True
-        cycle.append(start)
-        for candidate in range(len(graph[start])):
-            if not marque[candidate] or (candidate == source and n == len(graph)):
-                longueur += graph[start][candidate]
-                n = n + 1
-                if longueur <= borne:
-                    dfs(candidate)
-                longueur = longueur - graph[start][candidate]
-                n = n - 1
-        marque[start] = False
-        cycle.pop(-1)
+        
+        # Skip if node already visited
+        if self.visited[current_node]:
+            return
+            
+        # Prune if current path exceeds upper bound
+        if self.path_length >= self.upper_bound:
+            return
+        
+        # Mark current node as visited and add to path
+        self.visited[current_node] = True
+        self.path.append(current_node)
+        
+        # Explore neighbors
+        for next_node in range(len(self.graph[current_node])):
+            # Visit if unvisited, or if it's the source and we've visited all nodes
+            if not self.visited[next_node] or (next_node == self.source and self.current_step == len(self.graph)):
+                # Add edge weight
+                self.path_length += self.graph[current_node][next_node]
+                self.current_step += 1
+                
+                # Continue DFS if under bound
+                if self.path_length <= self.upper_bound:
+                    self.dfs(next_node)
+                
+                # Backtrack
+                self.path_length -= self.graph[current_node][next_node]
+                self.current_step -= 1
+        
+        # Unmark node and remove from path when backtracking
+        self.visited[current_node] = False
+        self.path.pop()
 
-source = 0
-dfs(source)
-print('Le meilleur tour =', longueurMin)
+
+# Initialize and run solver
+solver = TSPSolver(graph)
+min_tour_length = solver.solve()
+print(f'The best tour length = {min_tour_length}')

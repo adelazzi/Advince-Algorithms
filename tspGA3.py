@@ -1,74 +1,5 @@
 import numpy as np
  
-def do_crossover(s1, s2, m):
-   s1, s2 = s1.copy(), s2.copy()
-   c1 = s2.copy()
-   for i in range(m, len(s1)): c1.remove(s1[i])
-   for i in range(m, len(s1)): c1.append(s1[i])
-   c2 = s1.copy()
-   for i in range(m, len(s2)): c2.remove(s2[i])
-   for i in range(m, len(s2)): c2.append(s2[i]) 
-   return (c1, c2)
-         
-def do_mutation(s, m, n):
-   i, j = min(m, n), max(m, n)
-   s1 = s.copy()
-   while i < j:
-       s1[i], s1[j] = s1[j], s1[i]
-       i += 1
-       j -= 1
-   return s1
-     
-def compute_fitness(G, s):
-   l = 0
-   for i in range(len(s)-1):
-       l += G[s[i]][s[i+1]]
-   l += G[s[len(s)-1]][s[0]]   
-   return l
-     
-def evaluate(G, gen, k):
-   gen = sorted(gen, key=lambda s: compute_fitness(G, s))
-   return gen[:k]
- 
-def initial():
-    gen = []
-    path = list(range(len(graph)))
-    #initial pop
-    while len(gen) < pop:
-        path1 = path.copy()
-        np.random.shuffle(path1)
-        if not path1 in gen:
-            gen.append(path1)    
-    return gen
-
-def combine( gen ):
-    next_gen = []
-    L = len(gen[0])
-    for i in range( round(pop/2) ):
-          k1 = np.random.randint(0, L )
-          k2 = np.random.randint(0, L )
-          c1, c2 = do_crossover( gen[k1], gen[k2], np.random.randint(0, L) )
-          
-          if np.random.rand() < mutation_prob:
-              m = np.random.randint(0, L )
-              n = np.random.randint(0, L )
-              c1 = do_mutation( c1 , m, n)
-          if np.random.rand() < mutation_prob:
-              m = np.random.randint(0, L )
-              n = np.random.randint(0, L )
-              c2 = do_mutation( c2 , m, n )
-             
-          next_gen.append(c1)
-          next_gen.append(c2)
-          
-    return next_gen
-
-def replace( gn ):
-    return gn[ : pop]
-
-def best():
-    return gen[pop-1] , compute_fitness(graph, gen[pop-1] )
-#=====================================================
 graph2 = [[0, 4, 3, 2],
          [4, 0, 1, 2],
          [3, 1, 0, 5],
@@ -98,23 +29,126 @@ graph = [
 [46,21,51,64,23,59,33,37,11,37,61,55,23,59,0] ]
 
 
-mutation_prob = 0.1  
-ntrial = 500 
-pop = 20 
-c = 1000  
-   
-gen = initial()
-    
-for i in range(ntrial):
-       gen    = evaluate(graph, gen, pop )
-       newgen = combine(gen)
-       gen    = replace(newgen)
-       
-       sp , cp = best()
-       if cp < c:
-           #print(i,c)
-           c = cp
-           s = sp
-       
-print(  s, c )
+def compute_fitness(G, s):
+    """Calculate the total path length for a solution"""
+    total_distance = 0
+    for i in range(len(s) - 1):
+        total_distance += G[s[i]][s[i+1]]
+    total_distance += G[s[-1]][s[0]]  # Return to starting point
+    return total_distance
 
+def do_crossover(s1, s2, crossover_point):
+    """Perform crossover between two parent solutions"""
+    s1, s2 = s1.copy(), s2.copy()
+    
+    # Create first child
+    c1 = s2.copy()
+    for i in range(crossover_point, len(s1)): 
+        c1.remove(s1[i])
+    for i in range(crossover_point, len(s1)): 
+        c1.append(s1[i])
+    
+    # Create second child
+    c2 = s1.copy()
+    for i in range(crossover_point, len(s2)): 
+        c2.remove(s2[i])
+    for i in range(crossover_point, len(s2)): 
+        c2.append(s2[i])
+        
+    return (c1, c2)
+         
+def do_mutation(s, pos1, pos2):
+    """Reverse the segment between pos1 and pos2"""
+    i, j = min(pos1, pos2), max(pos1, pos2)
+    s_mutated = s.copy()
+    while i < j:
+        s_mutated[i], s_mutated[j] = s_mutated[j], s_mutated[i]
+        i += 1
+        j -= 1
+    return s_mutated
+
+def evaluate(G, population, k):
+    """Sort population by fitness and keep the best k individuals"""
+    return sorted(population, key=lambda s: compute_fitness(G, s))[:k]
+
+def generate_initial_population(graph, population_size):
+    """Generate initial random population"""
+    population = []
+    path = list(range(len(graph)))
+    
+    while len(population) < population_size:
+        path_candidate = path.copy()
+        np.random.shuffle(path_candidate)
+        if path_candidate not in population:
+            population.append(path_candidate)    
+    return population
+
+def create_offspring(population, mutation_prob, population_size):
+    """Create the next generation through crossover and mutation"""
+    next_gen = []
+    num_cities = len(population[0])
+    
+    for _ in range(round(population_size/2)):
+        # Select random parents
+        parent1_idx = np.random.randint(0, len(population))
+        parent2_idx = np.random.randint(0, len(population))
+        
+        # Perform crossover
+        crossover_point = np.random.randint(0, num_cities)
+        child1, child2 = do_crossover(population[parent1_idx], population[parent2_idx], crossover_point)
+        
+        # Possibly mutate first child
+        if np.random.rand() < mutation_prob:
+            pos1 = np.random.randint(0, num_cities)
+            pos2 = np.random.randint(0, num_cities)
+            child1 = do_mutation(child1, pos1, pos2)
+            
+        # Possibly mutate second child
+        if np.random.rand() < mutation_prob:
+            pos1 = np.random.randint(0, num_cities)
+            pos2 = np.random.randint(0, num_cities)
+            child2 = do_mutation(child2, pos1, pos2)
+        
+        # Add children to next generation
+        next_gen.append(child1)
+        next_gen.append(child2)
+          
+    return next_gen
+
+def get_best_solution(population, graph):
+    """Return the best solution and its fitness in the population"""
+    best_solution = min(population, key=lambda s: compute_fitness(graph, s))
+    best_fitness = compute_fitness(graph, best_solution)
+    return best_solution, best_fitness
+
+# Algorithm parameters
+MUTATION_PROBABILITY = 0.5
+NUM_GENERATIONS = 400 
+POPULATION_SIZE = 20 
+   
+# Initialize population
+population = generate_initial_population(graph, POPULATION_SIZE)
+
+# Track best solution
+best_solution = None
+best_distance = float('inf')
+
+# Main genetic algorithm loop
+for generation in range(NUM_GENERATIONS):
+    # Evaluate and select best individuals
+    population = evaluate(graph, population, POPULATION_SIZE)
+    
+    # Create next generation
+    offspring = create_offspring(population, MUTATION_PROBABILITY, POPULATION_SIZE)
+    
+    # Replace population with offspring
+    population = offspring[:POPULATION_SIZE]
+    
+    # Update best solution if improved
+    current_best, current_distance = get_best_solution(population, graph)
+    if current_distance < best_distance:
+        best_distance = current_distance
+        best_solution = current_best
+
+print(f"Best path: {best_solution}")
+print(f"Distance: {best_distance}")

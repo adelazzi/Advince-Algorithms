@@ -1,77 +1,62 @@
+from itertools import product
 
-from itertools import product 
- 
-graphe=[[0,1,0,1,0,0,1,1],
-[1,0,0,1,0,1,0,0],
-[0,0,0,1,0,1,0,0],
-[1,1,1,0,1,0,0,0],
-[0,0,0,1,0,1,0,0],
-[0,1,1,0,1,0,1,1],
-[1,0,0,0,0,1,0,0],
-[1,0,0,0,0,1,0,0],
+# Graph represented as an adjacency matrix
+graph = [
+    [0, 1, 0, 1, 0, 0, 1, 1],
+    [1, 0, 0, 1, 0, 1, 0, 0],
+    [0, 0, 0, 1, 0, 1, 0, 0],
+    [1, 1, 1, 0, 1, 0, 0, 0],
+    [0, 0, 0, 1, 0, 1, 0, 0],
+    [0, 1, 1, 0, 1, 0, 1, 1],
+    [1, 0, 0, 0, 0, 1, 0, 0],
+    [1, 0, 0, 0, 0, 1, 0, 0],
 ]
 
-M =[[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-]
+n = len(graph)
 
-n = len(graphe)       
-#N = 2**n
-s = []
-
-def cost( s ):
-    SA = 0 
+def copy_matrix(source, target):
+    """Copy the source matrix to the target matrix"""
     for i in range(n):
-        if s[i] == '1':
-            SA = SA + 1
-    return   SA 
+        for j in range(n):
+            target[i][j] = source[i][j]
 
+def calculate_cost(solution):
+    """Calculate the number of selected nodes in the solution"""
+    return sum(1 for bit in solution if bit == '1')
+
+def check_constraint(solution):
+    """Check if the solution covers all edges"""
+    # Create a working copy of the graph
+    matrix = [[0 for _ in range(n)] for _ in range(n)]
+    copy_matrix(graph, matrix)
     
-def const( s ):  
-    global M
-    cnt = 0
+    # Remove edges covered by selected nodes
     for i in range(n):
-        if s[i] == '1':
+        if solution[i] == '1':
             for j in range(n):
-                M[ i ][ j ] = 0
-                M[ j ][ i ] = 0
+                matrix[i][j] = 0
+                matrix[j][i] = 0
                 
-    for i in range(n):
-        for j in range(n):
-                if M[ i ][ j ] == 1 :
-                    cnt = cnt + 1
-    return cnt
+    # Count remaining edges
+    remaining_edges = sum(matrix[i][j] for i in range(n) for j in range(n))
+    return remaining_edges
 
-def initial():
-    s = []
-    for i in range(n):
-        s.append( '1')
-    return s
+def initial_solution():
+    """Create an initial solution with all nodes selected"""
+    return ['1' for _ in range(n)]
 
-def copie(M,graphe):
-    for i in range(n):
-        for j in range(n):
-             M[ i ][ j ] = graphe[i][j]
-                
+# Initialize best solution found
+best_solution = initial_solution()
+best_cost = n
 
+# Enumerate all possible combinations
+for candidate in product(['0', '1'], repeat=n):
+    # Check if candidate solution covers all edges
+    if check_constraint(candidate) == 0:
+        current_cost = calculate_cost(candidate)
+        # Update best solution if current is better
+        if current_cost < best_cost:
+            best_cost = current_cost
+            best_solution = candidate
 
-comb = product( ['0', '1'], repeat=n) 
-c = n
-s = initial()
-
-for sp in list(comb):
-    copie( M , graphe )
-    x = const( sp )
-    if x== 0 : 
-        cp = cost( sp )
-        if cp < c:
-            c = cp
-            s = sp 
-
-print( s , c )
+print(best_solution, best_cost)

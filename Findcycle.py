@@ -23,44 +23,49 @@ graph =    [
     [72, 52, 31, 43, 65, 29, 46, 31, 51, 23, 59, 11, 62, 0, 59],
     [46 ,21 ,51 ,64 ,23 ,59 ,33 ,37 ,11 ,37 ,61 ,55 ,23 ,59 ,0]
 ]
-
-mark=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-
-N=len(graph)
-def findcycle(node):
-    Iscycle = False
-    snode =0
-    stack = [node] 
-    mark[node] = 1 
-    cycle=[]
+def findcycle(graph, start_node=0):
+    N = len(graph)
+    mark = [0] * N
+    stack = [start_node]
+    mark[start_node] = 1
+    cycle = []
+    path = [start_node]  # Track the current path
+    
+    print(f"Searching for cycles starting from node {start_node}...")
+    
     while stack:
-        s = stack.pop() 
-        snode = snode + 1
-        cycle.append(s)
-        if(snode>3):
-            if (graph[node][s]!=0):
-                cycle.append(node)
-                print("this is cycle")
-                print(cycle)
-                Iscycle = True
-                cycle.pop()
-        print('Processing:',s)
-        for v in range(N):
-            if graph[s][v] != 0:
-                if mark[v] == 0: 
-                    stack.append(v)
-                    mark[v] = 1
-    if(Iscycle == False ):
-        print("there is no cycle")
-    return cycle
+        current = stack[-1]  # Look at the top of the stack without popping
+        found_unvisited = False
+        
+        # Check neighbors for unvisited nodes
+        for neighbor in range(N):
+            if graph[current][neighbor] != 0 and mark[neighbor] == 0:
+                stack.append(neighbor)
+                path.append(neighbor)
+                mark[neighbor] = 1
+                found_unvisited = True
+                print(f"Visiting node {neighbor}")
+                break
+        
+        # If we've found no unvisited neighbors, backtrack
+        if not found_unvisited:
+            stack.pop()
+            
+            # Check for cycle
+            if len(path) >= 3:
+                last_node = path[-1]
+                if graph[last_node][start_node] != 0:
+                    cycle = path + [start_node]  # Complete the cycle
+                    print("Cycle found:", cycle)
+                    return cycle
+            
+            if path:  # Prevent error for empty path
+                path.pop()
+    
+    print("No cycle found")
+    return []
 
-
-findcycle(0)
-
-
-
-
-
-
-
-
+# Test the function
+cycle = findcycle(graph)
+if cycle:
+    print(f"Final cycle: {cycle}")

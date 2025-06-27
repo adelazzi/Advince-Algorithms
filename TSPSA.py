@@ -28,52 +28,61 @@ graph = [
     #         [4, 0, 1, 2],
     #         [3, 1, 0, 5],
     #         [1, 2, 5, 0] ]
-
 def voisinage(s):
-   n = np.random.randint(0, len(graph))
-   m = np.random.randint(0, len(graph))
-   i, j = min(m, n), max(m, n)
+   """Generate a neighbor solution by reversing a random subsequence."""
+   n, m = np.random.randint(0, len(graph), size=2)
+   i, j = min(n, m), max(n, m)
    s1 = s.copy()
    while i < j:
       s1[i], s1[j] = s1[j], s1[i]
       i += 1
       j -= 1
    return s1
-  
+
 def cost(G, s):
-   l = 0
-   for i in range(len(s)-1):
-      l += G[s[i]][s[i+1]]
-   l += G[s[len(s)-1]][s[0]] 
-   return l
+   """Calculate the total cost of a tour."""
+   total = 0
+   for i in range(len(s) - 1):
+      total += G[s[i]][s[i + 1]]
+   total += G[s[-1]][s[0]]  # Return to starting point
+   return total
 
 def initial():
-    return list(range(len(graph)))
+   """Generate initial solution."""
+   return list(range(len(graph)))
 
-d1=[]
-T = 30
-alpha = 0.9
-Niter=1500
-
-s = initial()
-c = cost(graph, s )
-
-for i in range(Niter):
+def simulated_annealing(T_initial=30, alpha=0.9, iterations=1500):
+   """Run simulated annealing algorithm for TSP."""
+   costs = []
+   T = T_initial
+   s = initial()
+   c = cost(graph, s)
+   
+   for i in range(iterations):
       sp = voisinage(s)
       cp = cost(graph, sp)
-     
+      
       if cp < c:
          s, c = sp, cp
       else:
-         prb = np.exp( (c - cp)/T)
-         if np.random.rand() < prb:
+         probability = np.exp((c - cp) / T)
+         if np.random.rand() < probability:
             s, c = sp, cp
+      
+      T *= alpha
+      costs.append(c)
    
-      T = alpha*T
-      d1.append(c)
-         
-print( s,c )
-plt.plot( d1 )
+   return s, c, costs
 
-    
+# Run the algorithm
+best_path, best_cost, cost_history = simulated_annealing()
+print(f"Best path: {best_path}")
+print(f"Best cost: {best_cost}")
 
+# Plot the cost history
+plt.figure(figsize=(10, 6))
+plt.plot(cost_history)
+plt.title("Simulated Annealing for TSP")
+plt.xlabel("Iteration")
+plt.ylabel("Path Cost")
+plt.grid(True)

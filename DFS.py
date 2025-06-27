@@ -13,41 +13,61 @@ graph = [
     [0,0,0,0,0,0,0,0,0,0,0,0,3],
     [0,0,0,0,0,0,0,0,0,0,0,0,0]   
 ]
-file=[]
-cout=[0,0,0,0,0,0,0,0,0,0,0,0,0]
-mark=[0,0,0,0,0,0,0,0,0,0,0,0,0]
-N=13
-"""
-def dfs(graph,start):
-    stack = [start] 
-    mark[start] = 1 
-    while stack:
-        s = stack.pop() 
-        print('Processing:',s)
-        
-        for v in range(N):
-            if graph[s][v] != 0:
-                cout[v] = max(cout[v],cout[s] + graph[s][v])
-                if mark[v] == 0: 
-                    stack.append(v)
-                    mark[v] = 1
-"""
+# Constants and global variables
+N = 13
+costs = [0] * N
+visited = [0] * N
 
-def dfs_rec(graph,node):
-    mark[node] = 1  
-    print("----:",node)
+def dfs_recursive(graph, node):
+    """
+    Depth-first search recursive implementation that calculates maximum path costs.
+    
+    Args:
+        graph: Adjacency matrix representing the graph
+        node: Current node to process
+    """
+    visited[node] = 1
+    print(f"Processing node: {node}")
     
     for neighbor in range(N):
         if graph[node][neighbor] != 0:
-            cout[neighbor] = max(cout[neighbor],cout[node] + graph[node][neighbor])
-            if mark[neighbor] == 0: 
-             dfs_rec(graph,neighbor)
-    mark[node] = 0  
+            # Update cost to neighbor if path through current node is better
+            costs[neighbor] = max(costs[neighbor], costs[node] + graph[node][neighbor])
+            if visited[neighbor] == 0:
+                dfs_recursive(graph, neighbor)
+    
+    # Mark as done with this node
+    visited[node] = 0
 
-dfs_rec(graph,0)
+def dfs_iterative(graph, start):
+    """
+    Depth-first search iterative implementation that calculates maximum path costs.
+    
+    Args:
+        graph: Adjacency matrix representing the graph
+        start: Starting node for the search
+    """
+    stack = [start]
+    visited[start] = 1
+    
+    while stack:
+        node = stack.pop()
+        print(f"Processing node: {node}")
+        
+        for neighbor in range(N):
+            if graph[node][neighbor] != 0:
+                # Update cost to neighbor if path through current node is better
+                costs[neighbor] = max(costs[neighbor], costs[node] + graph[node][neighbor])
+                if visited[neighbor] == 0:
+                    stack.append(neighbor)
+                    visited[neighbor] = 1
 
+# Run the recursive DFS starting from node 0
+dfs_recursive(graph, 0)
+print(f"Maximum path costs: {costs}")
 
-
-#dfs(graph,0)
-dfs_rec(graph,0)
-print(cout)
+# Uncomment to use iterative version instead:
+# visited = [0] * N  # Reset visited array
+# costs = [0] * N    # Reset costs array
+# dfs_iterative(graph, 0)
+# print(f"Maximum path costs: {costs}")

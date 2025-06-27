@@ -53,10 +53,9 @@ All implementations are written in Python and designed for educational purposes,
 
 ### Metaheuristics & Advanced Optimization
 - **GeneticAlgo.py** - Genetic algorithm for knapsack problem
-- **solutions.py** - Genetic algorithm for partition problem
+- **partition_problem.py** - Genetic algorithm for partition problem
 
 ### Utility & Test Files
-- **problem.py** - Power function optimization example
 - **__pycache__/** - Python bytecode cache
 
 ## 🚀 Installation
@@ -133,8 +132,7 @@ python SearchDicotomy.py
 │   └── mergsort.py           # Merge sort
 │
 └── Utilities/
-    ├── solutions.py          # Partition problem GA
-    └── problem.py            # Power function example
+    ├── partition_problem.py          # Partition problem GA
 ```
 
 ## 🔍 Algorithm Categories
